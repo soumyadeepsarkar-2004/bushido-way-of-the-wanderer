@@ -79,3 +79,6 @@ node_repl_history
 # Temporary folders
 tmp
 temp
+
+.vercel
+.env*
