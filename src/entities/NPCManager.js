@@ -64,10 +64,11 @@ export class NPCManager {
     group.userData.npcId = npcId;
     group.userData.npcName = config.name;
 
-    const npcObj = {
+const npcObj = {
       id: npcId, config, group, nameplate,
       animTime: Math.random() * Math.PI * 2,
-      position: group.position
+      position: group.position,
+      _toPlayer: new THREE.Vector3()
     };
 
     this.npcs.push(npcObj);
@@ -160,8 +161,8 @@ export class NPCManager {
     for (const npc of this.npcs) {
       if (this.giftCooldowns[npc.id] > 0) this.giftCooldowns[npc.id] -= delta;
       npc.animTime += delta;
-      npc.group.position.y = npc.position.y + Math.sin(npc.animTime * 1.2) * 0.05;
-      const toPlayer = playerPosition.clone().sub(npc.group.position);
+npc.group.position.y = npc.position.y + Math.sin(npc.animTime * 1.2) * 0.05;
+      const toPlayer = npc._toPlayer.subVectors(playerPosition, npc.group.position);
       toPlayer.y = 0;
       if (toPlayer.lengthSq() > 0.01) {
         const angle = Math.atan2(toPlayer.x, toPlayer.z);

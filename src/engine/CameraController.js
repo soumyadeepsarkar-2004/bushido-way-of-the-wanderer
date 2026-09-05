@@ -33,6 +33,8 @@ export class CameraController {
     this.lockedTarget = null;
     this._tmpVec = new THREE.Vector3();
     this.shakeDirection = new THREE.Vector3();
+    this._fwdDir = new THREE.Vector3();
+    this._rightDir = new THREE.Vector3();
 
     // Mouse sensitivity
     this.sensitivity = 0.0022;
@@ -136,14 +138,14 @@ export class CameraController {
   }
 
   getForwardVector() {
-    const dir = new THREE.Vector3();
-    this.camera.getWorldDirection(dir);
-    dir.y = 0;
-    return dir.normalize();
+    this.camera.getWorldDirection(this._fwdDir);
+    this._fwdDir.y = 0;
+    return this._fwdDir.normalize();
   }
 
   getRightVector() {
     const forward = this.getForwardVector();
-    return new THREE.Vector3(-forward.z, 0, forward.x);
+    this._rightDir.set(-forward.z, 0, forward.x);
+    return this._rightDir;
   }
 }

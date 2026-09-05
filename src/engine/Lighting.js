@@ -16,13 +16,13 @@ export class LightingManager {
     // Directional celestial body (Sun / Moon)
     this.sunLight = new THREE.DirectionalLight(0xfffaed, 1.8);
     this.sunLight.castShadow = true;
-    this.sunLight.shadow.mapSize.width = 2048;
-    this.sunLight.shadow.mapSize.height = 2048;
+    this.sunLight.shadow.mapSize.width = 1024;
+    this.sunLight.shadow.mapSize.height = 1024;
     this.sunLight.shadow.camera.near = 0.5;
-    this.sunLight.shadow.camera.far = 250;
+    this.sunLight.shadow.camera.far = 200;
     this.sunLight.shadow.bias = -0.0004;
 
-    const d = 45;
+    const d = 40;
     this.sunLight.shadow.camera.left = -d;
     this.sunLight.shadow.camera.right = d;
     this.sunLight.shadow.camera.top = d;

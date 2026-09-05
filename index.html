@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.sentry.io https://www.google-analytics.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://www.googletagmanager.com; connect-src 'self' https://*.sentry.io https://www.google-analytics.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
   <meta name="description" content="BUSHIDO: Way of the Wanderer — 3D Action RPG. Gather resources, craft weapons, battle demons, and evolve into a legendary Samurai in an infinite wilderness.">
   <meta name="keywords" content="3D action RPG, samurai, bushido, ninja, open world, craft, combat, indie game">
   <meta name="author" content="BUSHIDO Dev Team">
@@ -30,7 +30,7 @@
   <script defer src="https://www.googletagmanager.com/gtag/js?id=G-3JEEMGKZJT"></script>
   <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-3JEEMGKZJT');</script>
   <script src="https://browser.sentry-cdn.com/8.0.0/bundle.min.js" integrity="sha384-KgfNZ/yPJH4C25ELk249/OmtPWiqwJxTf/Z5CMlCvdas3BGPSktVyCyXMGXg8vg5" crossorigin="anonymous"></script>
-  <script>Sentry.init({dsn:'https://13e3cdd4f95c4e7e979e20feec210fdb@o4512035607478272.ingest.us.sentry.io/4512035767058432',environment:'production',release:'bushido-v1.0.0',integrations:[new Sentry.BrowserTracing(),new Sentry.Replay()],tracesSampleRate:0.1,sessionReplaySampleRate:0.1});</script>
+  <script>Sentry.init({dsn:'https://13e3cdd4f95c4e7e979e20feec210fdb@o4512035607478272.ingest.us.sentry.io/4512035767058432',environment:'production',release:'bushido-v1.0.0'});</script>
   <style>
     :root {
       --gold: #d4af37;

@@ -49,6 +49,7 @@ export class Player {
     // Invulnerability window (during dodge)
     this.isInvulnerable = false;
     this.invulnTimer = 0;
+    this._speedVec = new THREE.Vector2();
   }
 
   setPosition(x, y, z) {
@@ -248,7 +249,7 @@ export class Player {
     this.mesh.rotation.y = this.rotationY;
 
     // Update animations
-    const currentSpeed = new THREE.Vector2(this.velocity.x, this.velocity.z).length();
+    const currentSpeed = this._speedVec.set(this.velocity.x, this.velocity.z).length();
     this.anim.update(delta, currentSpeed, this.isSprinting);
   }
 }

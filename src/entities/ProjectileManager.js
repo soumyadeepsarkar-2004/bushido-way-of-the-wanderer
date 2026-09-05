@@ -6,6 +6,7 @@ export class ProjectileManager {
     this.scene = scene;
     this.fx = particleFX;
     this.projectiles = [];
+    this._center = new THREE.Vector3();
   }
 
   spawnMatchlockBullet(origin, direction, damage = 95) {
@@ -104,7 +105,8 @@ export class ProjectileManager {
       let hitEnemy = false;
       for (const enemy of enemies) {
         if (enemy.isDead) continue;
-        const dist = p.mesh.position.distanceTo(enemy.mesh.position.clone().add(new THREE.Vector3(0, 1.0, 0)));
+        const center = this._center.set(enemy.mesh.position.x, enemy.mesh.position.y + 1.0, enemy.mesh.position.z);
+        const dist = p.mesh.position.distanceTo(center);
         const hitRadius = enemy.type === 'boss' || enemy.type === 'oni' ? 2.5 : 1.3;
 
         if (dist < hitRadius) {

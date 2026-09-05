@@ -424,16 +424,13 @@ if (nearest) {
       this.player.update(delta, this.input, camForward, camRight, terrainHeightAt, hasThunder, speedMult, surfaceType);
       distRan = this.player.totalDistance - prevDist;
 
-      // 2. Update Camera & Lighting & Weather
+      // 2. Update Camera & Lighting & Weather (biome drives fog color)
       this.cameraCtrl.update(delta, this.player.position, terrainHeightAt);
       this.lighting.update(delta, this.player.position);
-      this.weather.update(delta, this.player.position);
+      this.weather.update(delta, this.player.position, biome);
 
-// 3. Update Infinite World
-    this.world.update(this.player.position);
-
-    // Biome fog color
-    this.weather.update(delta, this.player.position, currentBiome);
+      // 3. Update Infinite World
+      this.world.update(this.player.position);
     }
 
     // 4. Update Combat & Enemies (enemies frozen during hit-stop)

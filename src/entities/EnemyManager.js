@@ -95,7 +95,7 @@ export class EnemyManager {
             });
           }
         }
-      });
+      }, hasBuff);
     }
 
     // Dynamic music intensity based on proximity to enemies
@@ -180,12 +180,12 @@ class BushLurker {
     eye2.position.set(-0.14, 0.48, -0.85);
     this.mesh.add(eye1, eye2);
 
-    scene.add(this.mesh);
+scene.add(this.mesh);
+    this._toPlayer = new THREE.Vector3();
   }
 
   takeDamage(amount) {
     this.hp -= amount;
-    this.isLurking = false;
     if (this.hp <= 0) {
       this.isDead = true;
       return true;
@@ -204,7 +204,7 @@ class BushLurker {
     this.mesh.scale.subScalar(delta * 0.4);
   }
 
-  update(delta, player, terrainHeightAt, onAttack) {
+  update(delta, player, terrainHeightAt, onAttack, hasBuff = () => false) {
     if (this.isStunned) {
       this.stunTimer -= delta;
       if (this.stunTimer <= 0) this.isStunned = false;
@@ -213,8 +213,7 @@ class BushLurker {
 
     if (this.attackCooldown > 0) this.attackCooldown -= delta;
 
-    const toPlayer = new THREE.Vector3().subVectors(player.position, this.mesh.position);
-    const dist = toPlayer.length();
+    const dist = this.mesh.position.distanceTo(player.position);
 
     // Ambush trigger — lurkers detect players, but shadow buff prevents detection
     if (this.isLurking) {
@@ -226,7 +225,7 @@ class BushLurker {
     }
 
     // Orient towards player
-    const targetAngle = Math.atan2(toPlayer.x, toPlayer.z);
+    const targetAngle = Math.atan2(player.position.x - this.mesh.position.x, player.position.z - this.mesh.position.z);
     this.mesh.rotation.y = THREE.MathUtils.lerp(this.mesh.rotation.y, targetAngle, delta * 8.0);
 
     // Leap attack if close
@@ -235,9 +234,11 @@ class BushLurker {
       onAttack(this.attackDamage, true);
     } else if (dist > 1.8) {
       // Charge forward
-      toPlayer.y = 0;
-      toPlayer.normalize();
-      this.mesh.position.addScaledVector(toPlayer, this.speed * delta);
+      const dirX = player.position.x - this.mesh.position.x;
+      const dirZ = player.position.z - this.mesh.position.z;
+      const invLen = 1 / Math.sqrt(dirX * dirX + dirZ * dirZ);
+      this.mesh.position.x += dirX * invLen * this.speed * delta;
+      this.mesh.position.z += dirZ * invLen * this.speed * delta;
       this.mesh.position.y = terrainHeightAt(this.mesh.position.x, this.mesh.position.z);
     }
   }
@@ -324,23 +325,24 @@ class YokaiGhost {
 
     if (this.attackCooldown > 0) this.attackCooldown -= delta;
 
-    const toPlayer = new THREE.Vector3().subVectors(player.position, this.mesh.position);
-    const dist = toPlayer.length();
+    const dist = this.mesh.position.distanceTo(player.position);
 
     // Smooth hover above ground
     const groundY = terrainHeightAt(this.mesh.position.x, this.mesh.position.z);
     this.mesh.position.y = groundY + 1.2 + Math.sin(this.floatTimer) * 0.4;
 
-    const targetAngle = Math.atan2(toPlayer.x, toPlayer.z);
+    const targetAngle = Math.atan2(player.position.x - this.mesh.position.x, player.position.z - this.mesh.position.z);
     this.mesh.rotation.y = targetAngle;
 
     if (dist < 3.2 && this.attackCooldown <= 0) {
       this.attackCooldown = 2.2;
       onAttack(this.attackDamage, true);
     } else if (dist > 2.2) {
-      toPlayer.y = 0;
-      toPlayer.normalize();
-      this.mesh.position.addScaledVector(toPlayer, this.speed * delta);
+      const dirX = player.position.x - this.mesh.position.x;
+      const dirZ = player.position.z - this.mesh.position.z;
+      const invLen = 1 / Math.sqrt(dirX * dirX + dirZ * dirZ);
+      this.mesh.position.x += dirX * invLen * this.speed * delta;
+      this.mesh.position.z += dirZ * invLen * this.speed * delta;
     }
   }
 }
@@ -388,6 +390,7 @@ class CorruptedRonin {
     this.mesh.add(blade);
 
     scene.add(this.mesh);
+    this._toPlayer = new THREE.Vector3();
   }
 
   takeDamage(amount) {
@@ -424,7 +427,7 @@ class CorruptedRonin {
 
     if (this.attackCooldown > 0) this.attackCooldown -= delta;
 
-    const toPlayer = new THREE.Vector3().subVectors(player.position, this.mesh.position);
+    const toPlayer = this._toPlayer.subVectors(player.position, this.mesh.position);
     const dist = toPlayer.length();
 
     this.mesh.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);
@@ -461,6 +464,7 @@ class OniBrute {
     this.mesh = new THREE.Group();
     this.mesh.position.copy(pos);
     this.mesh.scale.set(1.6, 1.6, 1.6); // Colossal size
+    this._toPlayer = new THREE.Vector3();
 
     const oniSkinMat = new THREE.MeshStandardMaterial({ color: 0xb71c1c, roughness: 0.7 });
     const hornMat = new THREE.MeshStandardMaterial({ color: 0xffeb3b, metalness: 0.6 });
@@ -524,7 +528,7 @@ class OniBrute {
 
     if (this.attackCooldown > 0) this.attackCooldown -= delta;
 
-    const toPlayer = new THREE.Vector3().subVectors(player.position, this.mesh.position);
+    const toPlayer = this._toPlayer.subVectors(player.position, this.mesh.position);
     const dist = toPlayer.length();
 
     this.mesh.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);

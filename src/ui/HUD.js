@@ -58,24 +58,55 @@ export class HUD {
 
     this.enemyBarElements = new Map();
 
+    this._lastAbilityState = {};
+
     // Low HP warning
     this.lowHpShown = false;
   }
 
   updatePlayerStatus(player, expProgress) {
     const hpPct = Math.max(0, Math.min(100, (player.hp / player.maxHp) * 100));
-    this.hpBar.style.width = `${hpPct}%`;
-    this.hpVal.innerText = `${Math.round(player.hp)} / ${player.maxHp}`;
+    if (hpPct !== this._lastHpPct) {
+      this._lastHpPct = hpPct;
+      this.hpBar.style.width = `${hpPct}%`;
+    }
+    const hpText = `${Math.round(player.hp)} / ${player.maxHp}`;
+    if (hpText !== this._lastHpText) {
+      this._lastHpText = hpText;
+      this.hpVal.innerText = hpText;
+    }
 
     const stamPct = Math.max(0, Math.min(100, (player.stamina / player.maxStamina) * 100));
-    this.staminaBar.style.width = `${stamPct}%`;
-    this.staminaVal.innerText = `${Math.round(player.stamina) / player.maxStamina}`;
+    if (stamPct !== this._lastStamPct) {
+      this._lastStamPct = stamPct;
+      this.staminaBar.style.width = `${stamPct}%`;
+    }
+    const stamText = `${Math.round(player.stamina) / player.maxStamina}`;
+    if (stamText !== this._lastStamText) {
+      this._lastStamText = stamText;
+      this.staminaVal.innerText = stamText;
+    }
 
-    this.xpBar.style.width = `${expProgress.percent}%`;
-    this.xpVal.innerText = `${expProgress.currentXP} / ${expProgress.xpToLevel}`;
+    const xpPct = expProgress.percent;
+    if (xpPct !== this._lastXpPct) {
+      this._lastXpPct = xpPct;
+      this.xpBar.style.width = `${xpPct}%`;
+    }
+    const xpText = `${expProgress.currentXP} / ${expProgress.xpToLevel}`;
+    if (xpText !== this._lastXpText) {
+      this._lastXpText = xpText;
+      this.xpVal.innerText = xpText;
+    }
 
-    this.playerLevelText.innerText = `LVL ${player.level}`;
-    this.playerStageBadge.innerText = player.stageTitle;
+    const lvlText = `LVL ${player.level}`;
+    if (lvlText !== this._lastLvlText) {
+      this._lastLvlText = lvlText;
+      this.playerLevelText.innerText = lvlText;
+    }
+    if (player.stageTitle !== this._lastStageTitle) {
+      this._lastStageTitle = player.stageTitle;
+      this.playerStageBadge.innerText = player.stageTitle;
+    }
 
     // Low HP audio warning
     if (player.hp <= player.maxHp * 0.2 && !this.lowHpShown) {
@@ -121,12 +152,19 @@ export class HUD {
         bg.appendChild(fill);
         bar.appendChild(bg);
         this.enemyBarsContainer.appendChild(bar);
-        this.enemyBarElements.set(enemy.mesh.uuid, { bar, fill, enemy });
+        this.enemyBarElements.set(enemy.mesh.uuid, { bar, fill, enemy, lastPct: null, lastColor: null });
       }
       const hpPct = Math.max(0, (enemy.hp / enemy.maxHp) * 100);
       const barData = this.enemyBarElements.get(enemy.mesh.uuid);
-      barData.fill.style.width = `${hpPct}%`;
-      barData.fill.style.background = hpPct > 50 ? '#c41e3a' : hpPct > 25 ? '#ff5252' : '#b71c1c';
+      if (hpPct !== barData.lastPct) {
+        barData.lastPct = hpPct;
+        barData.fill.style.width = `${hpPct}%`;
+      }
+      const barColor = hpPct > 50 ? '#c41e3a' : hpPct > 25 ? '#ff5252' : '#b71c1c';
+      if (barColor !== barData.lastColor) {
+        barData.lastColor = barColor;
+        barData.fill.style.background = barColor;
+      }
     }
     // Remove bars for dead enemies
     for (const [uuid, data] of this.enemyBarElements) {
@@ -138,16 +176,39 @@ export class HUD {
   }
 
   updateStreaks(streakSystem) {
-    this.streakCount.innerText = streakSystem.currentStreak;
-    this.streakMult.innerText = `${streakSystem.streakMultiplier.toFixed(1)}x XP Boost`;
+    const count = streakSystem.currentStreak;
+    if (count !== this._lastStreakCount) {
+      this._lastStreakCount = count;
+      this.streakCount.innerText = count;
+    }
+    const mult = `${streakSystem.streakMultiplier.toFixed(1)}x XP Boost`;
+    if (mult !== this._lastStreakMult) {
+      this._lastStreakMult = mult;
+      this.streakMult.innerText = mult;
+    }
   }
 
   updateResources(inventory) {
-    this.resGold.innerText = inventory.resources.gold;
-    this.resIron.innerText = inventory.resources.iron + inventory.resources.silver;
-    this.resDiamond.innerText = inventory.resources.diamond;
+    const gold = inventory.resources.gold;
+    if (gold !== this._lastGold) {
+      this._lastGold = gold;
+      this.resGold.innerText = gold;
+    }
+    const iron = inventory.resources.iron + inventory.resources.silver;
+    if (iron !== this._lastIron) {
+      this._lastIron = iron;
+      this.resIron.innerText = iron;
+    }
+    const diamond = inventory.resources.diamond;
+    if (diamond !== this._lastDiamond) {
+      this._lastDiamond = diamond;
+      this.resDiamond.innerText = diamond;
+    }
     const totalFood = Object.values(inventory.foods).reduce((a, b) => a + b, 0);
-    this.resFood.innerText = totalFood;
+    if (totalFood !== this._lastFood) {
+      this._lastFood = totalFood;
+      this.resFood.innerText = totalFood;
+    }
   }
 
   updateAbilities(abilitiesSystem) {
@@ -155,18 +216,21 @@ export class HUD {
       const slot = this.abilitySlots[key];
       if (!slot) continue;
       if (ab.isActive) {
+        const state = `a:${Math.ceil(ab.remainingTime)}`;
+        if (this._lastAbilityState[key] === state) continue;
+        this._lastAbilityState[key] = state;
         slot.el.classList.add('active');
         slot.timer.style.display = 'block';
         slot.timer.innerText = `${Math.ceil(ab.remainingTime)}s`;
         slot.cd.style.height = '0%';
       } else {
+        const cdPct = ab.cooldownTimer > 0 ? (ab.cooldownTimer / ab.cooldown) * 100 : 0;
+        const state = `i:${cdPct}`;
+        if (this._lastAbilityState[key] === state) continue;
+        this._lastAbilityState[key] = state;
         slot.el.classList.remove('active');
         slot.timer.style.display = 'none';
-        if (ab.cooldownTimer > 0) {
-          slot.cd.style.height = `${(ab.cooldownTimer / ab.cooldown) * 100}%`;
-        } else {
-          slot.cd.style.height = '0%';
-        }
+        slot.cd.style.height = `${cdPct}%`;
       }
     }
   }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bushido-v1';
+const CACHE_NAME = 'bushido-v2';
 const ASSETS = [
   '/',
   '/index.html',
