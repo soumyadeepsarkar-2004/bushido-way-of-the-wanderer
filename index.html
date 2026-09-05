@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://*.sentry.io https://www.google-analytics.com; frame-src 'none'; object-src 'none'; base-uri 'self';">
+  <meta name="description" content="BUSHIDO: Way of the Wanderer — 3D Action RPG. Gather resources, craft weapons, battle demons, and evolve into a legendary Samurai in an infinite wilderness.">
+  <meta name="keywords" content="3D action RPG, samurai, bushido, ninja, open world, craft, combat, indie game">
+  <meta name="author" content="BUSHIDO Dev Team">
+  <meta name="theme-color" content="#080a0f">
+  <meta name="description" content="BUSHIDO: Way of the Wanderer — 3D Action RPG. Gather resources, craft weapons, battle demons, and evolve into a legendary Samurai in an infinite wilderness.">
+  <meta name="keywords" content="3D action RPG, samurai, bushido, ninja, open world, craft, combat, indie game">
+  <meta name="author" content="BUSHIDO Dev Team">
+  <meta name="theme-color" content="#080a0f">
+  <meta property="og:title" content="BUSHIDO: Way of the Wanderer | 3D Action RPG">
+  <meta property="og:description" content="Gather, Craft, Fight, Evolve. Become a Legendary Samurai in an Infinite Wilderness.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://bushido-wanderer.vercel.app">
+  <meta property="og:image" content="/icons/icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:image:alt" content="BUSHIDO Game Icon">
+  <meta property="og:site_name" content="BUSHIDO">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BUSHIDO: Way of the Wanderer">
+  <meta name="twitter:description" content="3D Action RPG — Become a Legendary Samurai">
+  <meta name="twitter:image" content="/icons/icon-512.png">
+  <link rel="icon" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Noto+Serif+JP:wght@400;600;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <script defer src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+  <script src="https://browser.sentry-cdn.com/8.0.0/bundle.min.js" integrity="sha384-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" crossorigin="anonymous"></script>
+  <script>Sentry.init({dsn:'https://xxxxxxxxx@o0.ingest.sentry.io/0',environment:'production',release:'bushido-v1.0.0',integrations:[new Sentry.BrowserTracing(),new Sentry.Replay()],tracesSampleRate:0.1,sessionReplaySampleRate:0.1});</script>
+  <style>
+    :root {
+      --gold: #d4af37;
+      --gold-glow: rgba(212, 175, 55, 0.4);
+      --crimson: #c41e3a;
+      --crimson-glow: rgba(196, 30, 58, 0.5);
+      --blue-spirit: #4fc3f7;
+      --dark-bg: rgba(12, 14, 18, 0.88);
+      --border-dark: rgba(212, 175, 55, 0.3);
+      --font-title: 'Cinzel', serif;
+      --font-body: 'Rajdhani', sans-serif;
+      --font-jp: 'Noto Serif JP', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080a0f;
+      font-family: var(--font-body);
+      color: #e6e6e6;
+    }
+
+    #game-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+    }
+
+    /* Crosshair */
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 8px;
+      height: 8px;
+      border: 2px solid rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10;
+      transition: all 0.15s ease;
+    }
+
+    #crosshair.locked-on {
+      width: 24px;
+      height: 24px;
+      border-color: var(--crimson);
+      box-shadow: 0 0 10px var(--crimson-glow);
+    }
+
+    /* UI Overlay */
+    #ui-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    .interactive {
+      pointer-events: auto;
+    }
+
+    /* TOP LEFT: Player Status */
+    #player-hud {
+      position: absolute;
+      top: 24px;
+      left: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: linear-gradient(135deg, rgba(14, 16, 22, 0.85), rgba(8, 9, 13, 0.6));
+      padding: 16px 20px;
+      border-radius: 8px;
+      border-left: 4px solid var(--gold);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+      min-width: 320px;
+    }
+
+    .player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .player-name {
+      font-family: var(--font-title);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .player-title-badge {
+      font-size: 11px;
+      background: rgba(212, 175, 55, 0.2);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .player-level {
+      font-family: var(--font-title);
+      font-size: 14px;
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* Bars */
+    .bar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      color: #aaa;
+      text-transform: uppercase;
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      transition: width 0.25s ease-out;
+    }
+
+    #hp-bar {
+      background: linear-gradient(90deg, #b71c1c, #ff5252);
+      box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+    }
+
+    #stamina-bar {
+      background: linear-gradient(90deg, #1b5e20, #4caf50);
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+    }
+
+    #xp-bar {
+      background: linear-gradient(90deg, #0277bd, #00e5ff);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+    }
+
+    /* TOP RIGHT: Streak & Minimap */
+    #top-right-hud {
+      position: absolute;
+      top: 24px;
+      right: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    #streak-container {
+      background: linear-gradient(135deg, rgba(20, 15, 10, 0.85), rgba(10, 8, 5, 0.7));
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 12px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+    }
+
+    .streak-title {
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--gold);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .streak-number {
+      font-family: var(--font-title);
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 12px var(--gold-glow);
+    }
+
+    .streak-multiplier {
+      font-size: 11px;
+      color: #4fc3f7;
+      font-weight: 600;
+    }
+
+    /* Currency & Foraged Counters */
+    #resource-hud {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: rgba(14, 16, 22, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px 14px;
+      border-radius: 8px;
+      backdrop-filter: blur(8px);
+    }
+
+    .res-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .res-icon {
+      width: 14px;
+      text-align: center;
+    }
+
+    /* BOTTOM CENTER: Action Bar & Timed Abilities */
+    #bottom-hud {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #timed-abilities {
+      display: flex;
+      gap: 14px;
+    }
+
+    .ability-slot {
+      width: 64px;
+      height: 64px;
+      background: rgba(18, 20, 28, 0.85);
+      border: 2px solid rgba(212, 175, 55, 0.4);
+      border-radius: 10px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ability-slot.active {
+      border-color: #00e5ff;
+      box-shadow: 0 0 18px rgba(0, 229, 255, 0.6);
+    }
+
+    .ability-slot .keybind {
+      position: absolute;
+      top: 3px;
+      left: 5px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .ability-slot .icon {
+      font-size: 22px;
+    }
+
+    .ability-slot .name {
+      font-size: 9px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #bbb;
+      margin-top: 2px;
+    }
+
+    .ability-slot .cooldown-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background: rgba(0, 0, 0, 0.7);
+      transition: height 0.1s linear;
+    }
+
+    .ability-slot .duration-timer {
+      position: absolute;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 0 4px #000;
+      display: none;
+    }
+
+    /* Notification & XP Loss Banner */
+    #alert-banner {
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 30px;
+      border-radius: 8px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      z-index: 50;
+    }
+
+    #alert-banner.show {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    #alert-banner.xp-loss {
+      background: linear-gradient(135deg, rgba(139, 0, 0, 0.95), rgba(70, 0, 0, 0.9));
+      border: 2px solid #ff3333;
+      box-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+      animation: alertPulse 0.4s infinite alternate;
+    }
+
+    #alert-banner.xp-gain {
+      background: linear-gradient(135deg, rgba(0, 80, 120, 0.95), rgba(0, 40, 70, 0.9));
+      border: 2px solid #00e5ff;
+      box-shadow: 0 0 25px rgba(0, 229, 255, 0.6);
+    }
+
+    #alert-banner.relic-defense {
+      background: linear-gradient(135deg, rgba(90, 60, 0, 0.95), rgba(40, 25, 0, 0.9));
+      border: 2px solid var(--gold);
+      box-shadow: 0 0 30px var(--gold-glow);
+    }
+
+    @keyframes alertPulse {
+      0% { transform: translateX(-50%) scale(1.0); }
+      100% { transform: translateX(-50%) scale(1.08); }
+    }
+
+    .alert-title {
+      font-family: var(--font-title);
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #fff;
+    }
+
+    .alert-subtitle {
+      font-size: 13px;
+      color: #f0f0f0;
+      font-weight: 600;
+    }
+
+    /* Screen Damage Flash */
+    #damage-flash {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, transparent 40%, rgba(200, 0, 0, 0.45) 90%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s ease-out;
+      z-index: 15;
+    }
+
+    /* Interaction Prompt */
+    #interact-prompt {
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(12, 14, 20, 0.85);
+      border: 1px solid var(--gold);
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      z-index: 30;
+    }
+
+    .key-badge {
+      background: var(--gold);
+      color: #111;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    /* Modals / Windows (Inventory, Blacksmith, Store, Skill Tree) */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(4, 5, 8, 0.75);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal-window {
+      background: linear-gradient(145deg, #131720, #0a0c10);
+      border: 2px solid var(--border-dark);
+      border-radius: 12px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.8);
+      width: 850px;
+      max-width: 95vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalSlide 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalSlide {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(18, 22, 30, 0.6);
+    }
+
+    .modal-title {
+      font-family: var(--font-title);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 1px;
+    }
+
+    .modal-close-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #bbb;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--crimson);
+      color: #fff;
+      border-color: var(--crimson);
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      gap: 24px;
+    }
+
+    /* Tabs */
+    .modal-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 0 24px;
+      background: rgba(10, 12, 16, 0.5);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .modal-tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #888;
+      font-family: var(--font-title);
+      font-size: 14px;
+      padding: 12px 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-tab-btn.active, .modal-tab-btn:hover {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    /* Grids & Cards */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+      flex: 1;
+    }
+
+    .item-card {
+      background: rgba(22, 26, 36, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .item-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .item-card.equipped {
+      border-color: #00e5ff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+    }
+
+    .item-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-card-icon {
+      font-size: 26px;
+    }
+
+    .item-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .item-card-desc {
+      font-size: 11px;
+      color: #999;
+      line-height: 1.4;
+    }
+
+    .item-card-cost {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 600;
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-button {
+      background: linear-gradient(135deg, var(--gold), #a6821d);
+      color: #0c0e12;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-family: var(--font-title);
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .action-button:hover {
+      filter: brightness(1.15);
+      box-shadow: 0 0 12px var(--gold-glow);
+    }
+
+    .action-button:disabled {
+      background: #333;
+      color: #777;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* Start / Instructions Screen */
+    #start-screen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(12, 15, 22, 0.88), #06070a);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .game-logo {
+      font-family: var(--font-title);
+      font-size: 58px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      color: #f5f5f5;
+      text-shadow: 0 0 30px var(--gold-glow);
+      margin-bottom: 8px;
+    }
+
+    .game-subtitle {
+      font-family: var(--font-jp);
+      font-size: 18px;
+      color: var(--gold);
+      letter-spacing: 3px;
+      margin-bottom: 24px;
+    }
+
+    .lore-box {
+      max-width: 620px;
+      font-size: 15px;
+      color: #bbb;
+      line-height: 1.7;
+      margin-bottom: 32px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 20px 26px;
+      border-radius: 8px;
+      border-left: 3px solid var(--gold);
+    }
+
+    .controls-hint-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      max-width: 650px;
+      margin-bottom: 36px;
+    }
+
+    .hint-chip {
+      background: rgba(20, 24, 32, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .play-btn {
+      background: linear-gradient(135deg, #d4af37, #b8860b);
+      color: #0b0d11;
+      font-family: var(--font-title);
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      padding: 16px 52px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 30px var(--gold-glow);
+      transition: all 0.25s;
+    }
+
+    .play-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 45px rgba(212, 175, 55, 0.8);
+    }
+
+    /* Hotkey Help Bar at Bottom Left */
+    #quick-keys {
+      position: absolute;
+      bottom: 24px;
+      left: 28px;
+      display: flex;
+      gap: 12px;
+      background: rgba(10, 12, 16, 0.7);
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11px;
+      color: #999;
+    }
+
+    .key-pair span {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    /* Accessibility: reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      #alert-banner { animation: none !important; }
+      #damage-flash { transition: none !important; }
+      .modal-window { animation: none !important; }
+      .bar-fill { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 3D Canvas -->
+  <canvas id="game-canvas"></canvas>
+
+  <!-- Dynamic Aim Crosshair -->
+  <div id="crosshair"></div>
+
+  <!-- Damage Screen Flash -->
+  <div id="damage-flash"></div>
+
+  <!-- HUD Overlay -->
+  <div id="ui-container">
+    <!-- Top Left: Player Level, HP, Stamina, Skill XP -->
+    <div id="player-hud">
+      <div class="player-header">
+        <div class="player-name">
+          <span id="player-display-name">Kenshin</span>
+          <span id="player-stage-badge" class="player-title-badge">The Kid</span>
+        </div>
+        <div class="player-level" id="player-level-text">LVL 1</div>
+      </div>
+
+      <!-- Health Bar -->
+      <div class="bar-container">
+        <div class="bar-label">
+          <span>Health</span>
+          <span id="hp-val">100 / 100</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" id="hp-bar" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Stamina Bar -->
+      <div class="bar-container">
+        <div class="bar-label">
+          <span>Stamina</span>
+          <span id="stamina-val">100 / 100</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" id="stamina-bar" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- Skill Mastery XP Bar -->
+      <div class="bar-container">
+        <div class="bar-label">
+          <span>Skill Focus (XP)</span>
+          <span id="xp-val">0 / 100</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" id="xp-bar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Right: Streak, Multiplier & Resources -->
+    <div id="top-right-hud">
+      <div id="streak-container">
+        <div class="streak-title">Combat Streak</div>
+        <div class="streak-number" id="streak-count">0</div>
+        <div class="streak-multiplier" id="streak-mult">1.0x XP Boost</div>
+      </div>
+
+      <div id="resource-hud">
+        <div class="res-item" title="Gold Coin">
+          <span class="res-icon">🪙</span>
+          <span id="res-gold">0</span>
+        </div>
+        <div class="res-item" title="Silver & Iron Ore">
+          <span class="res-icon">⛏️</span>
+          <span id="res-iron">0</span>
+        </div>
+        <div class="res-item" title="Diamond Crystal">
+          <span class="res-icon">💎</span>
+          <span id="res-diamond">0</span>
+        </div>
+        <div class="res-item" title="Forest Foods & Herbs">
+          <span class="res-icon">🍙</span>
+          <span id="res-food">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Central Alert Banner (XP Loss / Gain / Relic Alert) -->
+    <div id="alert-banner" class="xp-loss">
+      <div class="alert-title" id="alert-title">⚠️ FOCUS SHATTERED!</div>
+      <div class="alert-subtitle" id="alert-sub">-25 Skill XP Lost! Regain your stance!</div>
+    </div>
+
+    <!-- Interaction Prompt (E Key) -->
+    <div id="interact-prompt">
+      <span class="key-badge">E</span>
+      <span id="interact-text">Harvest Wild Herbs</span>
+    </div>
+
+    <!-- Bottom Center: Timed Ability Slots -->
+    <div id="bottom-hud">
+      <div id="timed-abilities">
+        <!-- Q: Thunder Step -->
+        <div class="ability-slot interactive" id="ability-thunder" title="Thunder Step (+50% Speed & Lightning Slash)">
+          <span class="keybind">Q</span>
+          <span class="icon">⚡</span>
+          <span class="name">Thunder</span>
+          <div class="cooldown-overlay" id="cd-thunder"></div>
+          <span class="duration-timer" id="timer-thunder">30s</span>
+        </div>
+
+        <!-- R: Flame Blade -->
+        <div class="ability-slot interactive" id="ability-flame" title="Flame Blade (Ignites Katana with Fire DPS)">
+          <span class="keybind">R</span>
+          <span class="icon">🔥</span>
+          <span class="name">Flame</span>
+          <div class="cooldown-overlay" id="cd-flame"></div>
+          <span class="duration-timer" id="timer-flame">45s</span>
+        </div>
+
+        <!-- F: Spirit Ward -->
+        <div class="ability-slot interactive" id="ability-spirit" title="Spirit Ward (Ghost Immunity & Barrier)">
+          <span class="keybind">F</span>
+          <span class="icon">🛡️</span>
+          <span class="name">Ward</span>
+          <div class="cooldown-overlay" id="cd-spirit"></div>
+          <span class="duration-timer" id="timer-spirit">30s</span>
+        </div>
+
+        <!-- T: Shadow Veil -->
+        <div class="ability-slot interactive" id="ability-shadow" title="Shadow Veil (Camouflage & Stealth)">
+          <span class="keybind">T</span>
+          <span class="icon">🌑</span>
+          <span class="name">Shadow</span>
+          <div class="cooldown-overlay" id="cd-shadow"></div>
+          <span class="duration-timer" id="timer-shadow">25s</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Key Hint Bar -->
+    <div id="quick-keys">
+      <div class="key-pair"><span>WASD</span> Move / Sprint</div>
+      <div class="key-pair"><span>LMB</span> Attack Combo</div>
+      <div class="key-pair"><span>RMB</span> Parry / Block</div>
+      <div class="key-pair"><span>SPACE</span> Dodge Roll</div>
+      <div class="key-pair"><span>I</span> Inventory</div>
+      <div class="key-pair"><span>C</span> Blacksmith Forge</div>
+      <div class="key-pair"><span>B</span> Store</div>
+      <div class="key-pair"><span>K</span> Skill Path</div>
+    </div>
+  </div>
+
+  <!-- Modals: Inventory / Crafting / Store / Skills -->
+  <div class="modal-overlay interactive" id="modal-container">
+    <div class="modal-window">
+      <div class="modal-header">
+        <div class="modal-title" id="modal-title">Blacksmith Forge</div>
+        <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-tabs" id="modal-tabs">
+        <!-- Dynamically rendered tabs -->
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Dynamically rendered content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Start Screen & Title Overlay -->
+  <div id="start-screen" class="interactive">
+    <div class="game-logo">BUSHIDO</div>
+    <div class="game-subtitle">〜 武士道：放浪者の道 〜 WAY OF THE WANDERER</div>
+    <div class="lore-box">
+      You awaken in an infinite, untamed wilderness as a nameless wanderer. Gather food from the ancient forests, mine precious gold and diamonds, craft razor-sharp blades and armor, and survive lurking bush predators, ethereal yōkai, and monstrous demons. Grow your skills with every stride and evolve into a legendary Samurai.
+    </div>
+
+    <div class="controls-hint-grid">
+      <div class="hint-chip"><span>WASD</span> Move / Direction</div>
+      <div class="hint-chip"><span>Shift</span> Sprint / Slide</div>
+      <div class="hint-chip"><span>Space</span> Jump / Dodge Roll</div>
+      <div class="hint-chip"><span>LMB</span> 3-Hit Katana Combo</div>
+      <div class="hint-chip"><span>RMB</span> Deflect / Parry</div>
+      <div class="hint-chip"><span>Q / R / F / T</span> Timed Abilities</div>
+      <div class="hint-chip"><span>E</span> Forage / Interact</div>
+      <div class="hint-chip"><span>I / C / B / K</span> Menus & Forge</div>
+      <div class="hint-chip"><span>Mouse</span> Camera Look</div>
+    </div>
+
+    <button class="play-btn" id="start-game-btn">BEGIN JOURNEY</button>
+  </div>
+
+  <!-- Module Entrypoint -->
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

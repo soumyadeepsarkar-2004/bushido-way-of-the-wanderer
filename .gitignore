@@ -1,0 +1,81 @@
+node_modules/
+dist/
+.vite/
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.log
+coverage/
+.vscode/
+.idea/
+*.swp
+*.swo
+__pycache__/
+.npm
+.eslintcache
+.vercel
+
+# AI agent tooling config (not part of the game repo)
+.claude/
+.agents/
+.gemini/
+.pi/
+.opencode/
+.claude-code/
+.cursor/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage
+*.lcov
+
+# Dependency directory
+node_modules
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache
+.rts2_cache_cjs
+
+# Optional REPL history
+node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+.env.production
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# vercel
+.vercel
+
+# Temporary folders
+tmp
+temp
