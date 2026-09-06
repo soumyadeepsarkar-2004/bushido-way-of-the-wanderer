@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bushido-way-of-the-wanderer.vercel.app/sitemap.xml
